@@ -1,0 +1,395 @@
+name: Auto Build PushClock Pro APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Buat Seluruh File Aplikasi Android Otomatis
+        run: |
+          mkdir -p app/src/main/java/com/pushclock/pro
+          mkdir -p app/src/main/res/layout
+
+          cat << 'EOF' > settings.gradle.kts
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "PushClockPro"
+          include(":app")
+          EOF
+
+          cat << 'EOF' > build.gradle.kts
+          plugins {
+              id("com.android.application") version "8.2.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.22" apply false
+          }
+          EOF
+
+          cat << 'EOF' > app/build.gradle.kts
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+          android {
+              namespace = "com.pushclock.pro"
+              compileSdk = 34
+              defaultConfig {
+                  applicationId = "com.pushclock.pro"
+                  minSdk = 24
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0"
+              }
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+          }
+          dependencies {
+              implementation("androidx.core:core-ktx:1.12.0")
+              implementation("androidx.appcompat:appcompat:1.6.1")
+              implementation("com.google.android.material:material:1.11.0")
+              implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.WAKE_LOCK" />
+              <uses-permission android:name="android.permission.VIBRATE" />
+              <uses-feature android:name="android.hardware.sensor.proximity" android:required="false" />
+              <application
+                  android:allowBackup="true"
+                  android:label="PushClock Pro"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:showOnLockScreen="true"
+                      android:turnScreenOn="true"
+                      android:screenOrientation="portrait">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="#0F172A"
+              android:padding="20dp">
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical"
+                  android:gravity="center_horizontal">
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="PUSHCLOCK PRO"
+                      android:textColor="#38BDF8"
+                      android:textSize="28sp"
+                      android:textStyle="bold"
+                      android:layout_marginTop="8dp" />
+                  <TextView
+                      android:id="@+id/tvStatus"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:text="Siap menyetel alarm olahraga pagi Anda"
+                      android:textColor="#E2E8F0"
+                      android:textSize="15sp"
+                      android:gravity="center"
+                      android:padding="12dp"
+                      android:layout_marginTop="10dp"
+                      android:background="#1E293B" />
+                  <TextView
+                      android:id="@+id/tvCounter"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="0 / 10"
+                      android:textColor="#22C55E"
+                      android:textSize="54sp"
+                      android:textStyle="bold"
+                      android:layout_marginTop="16dp" />
+                  <TextView
+                      android:id="@+id/tvTargetLabel"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="Target Push-Up: 10 Repetisi"
+                      android:textColor="#94A3B8"
+                      android:textSize="16sp"
+                      android:layout_marginTop="8dp" />
+                  <SeekBar
+                      android:id="@+id/seekTarget"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="8dp" />
+                  <TimePicker
+                      android:id="@+id/timePicker"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:timePickerMode="spinner"
+                      android:layout_marginTop="12dp" />
+                  <Button
+                      android:id="@+id/btnSetAlarm"
+                      android:layout_width="match_parent"
+                      android:layout_height="56dp"
+                      android:text="AKTIFKAN JADWAL ALARM"
+                      android:backgroundTint="#0284C7"
+                      android:textColor="#FFFFFF"
+                      android:textStyle="bold"
+                      android:layout_marginTop="8dp" />
+                  <Button
+                      android:id="@+id/btnTriggerNow"
+                      android:layout_width="match_parent"
+                      android:layout_height="56dp"
+                      android:text="UJI ALARM &amp; SENSOR SEKARANG"
+                      android:backgroundTint="#EF4444"
+                      android:textColor="#FFFFFF"
+                      android:textStyle="bold"
+                      android:layout_marginTop="8dp" />
+                  <Button
+                      android:id="@+id/btnNoseTouch"
+                      android:layout_width="match_parent"
+                      android:layout_height="110dp"
+                      android:text="TARGET SENTUH DAGU / HIDUNG\n(Atau Dekatkan Dada ke Sensor Atas Layar)"
+                      android:backgroundTint="#16A34A"
+                      android:textColor="#FFFFFF"
+                      android:textSize="16sp"
+                      android:textStyle="bold"
+                      android:layout_marginTop="16dp" />
+              </LinearLayout>
+          </ScrollView>
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/pushclock/pro/MainActivity.kt
+          package com.pushclock.pro
+
+          import android.content.Context
+          import android.hardware.Sensor
+          import android.hardware.SensorEvent
+          import android.hardware.SensorEventListener
+          import android.hardware.SensorManager
+          import android.media.AudioManager
+          import android.media.Ringtone
+          import android.media.RingtoneManager
+          import android.media.ToneGenerator
+          import android.os.Bundle
+          import android.os.Handler
+          import android.os.Looper
+          import android.os.VibrationEffect
+          import android.os.Vibrator
+          import android.view.WindowManager
+          import android.widget.Button
+          import android.widget.SeekBar
+          import android.widget.TextView
+          import android.widget.TimePicker
+          import android.widget.Toast
+          import androidx.appcompat.app.AppCompatActivity
+          import java.util.Calendar
+
+          class MainActivity : AppCompatActivity(), SensorEventListener {
+              private lateinit var sensorManager: SensorManager
+              private var proximitySensor: Sensor? = null
+              private lateinit var tvStatus: TextView
+              private lateinit var tvCounter: TextView
+              private lateinit var tvTargetLabel: TextView
+              private lateinit var seekTarget: SeekBar
+              private lateinit var timePicker: TimePicker
+              private lateinit var btnSetAlarm: Button
+              private lateinit var btnTriggerNow: Button
+              private lateinit var btnNoseTouch: Button
+              private var targetReps = 10
+              private var currentReps = 0
+              private var isAlarmRinging = false
+              private var isBodyDown = false
+              private var alarmHour = -1
+              private var alarmMinute = -1
+              private var isAlarmScheduled = false
+              private var ringtone: Ringtone? = null
+              private val toneGen = ToneGenerator(AudioManager.STREAM_ALARM, 100)
+              private val handler = Handler(Looper.getMainLooper())
+
+              private val clockChecker = object : Runnable {
+                  override fun run() {
+                      if (isAlarmScheduled && !isAlarmRinging) {
+                          val now = Calendar.getInstance()
+                          if (now.get(Calendar.HOUR_OF_DAY) == alarmHour &&
+                              now.get(Calendar.MINUTE) == alarmMinute &&
+                              now.get(Calendar.SECOND) == 0
+                          ) {
+                              startAlarmMission()
+                          }
+                      }
+                      handler.postDelayed(this, 1000)
+                  }
+              }
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  window.addFlags(
+                      WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                      WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                      WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                  )
+                  setContentView(R.layout.activity_main)
+                  tvStatus = findViewById(R.id.tvStatus)
+                  tvCounter = findViewById(R.id.tvCounter)
+                  tvTargetLabel = findViewById(R.id.tvTargetLabel)
+                  seekTarget = findViewById(R.id.seekTarget)
+                  timePicker = findViewById(R.id.timePicker)
+                  btnSetAlarm = findViewById(R.id.btnSetAlarm)
+                  btnTriggerNow = findViewById(R.id.btnTriggerNow)
+                  btnNoseTouch = findViewById(R.id.btnNoseTouch)
+                  timePicker.setIs24HourView(true)
+                  sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+                  proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+                  val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                      ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                  ringtone = RingtoneManager.getRingtone(applicationContext, alarmUri)
+                  seekTarget.max = 50
+                  seekTarget.progress = 10
+                  updateCounterUI()
+                  seekTarget.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                      override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                          targetReps = if (progress < 3) 3 else progress
+                          tvTargetLabel.text = "Target Push-Up: $targetReps Repetisi"
+                          updateCounterUI()
+                      }
+                      override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                      override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                  })
+                  btnSetAlarm.setOnClickListener {
+                      alarmHour = timePicker.hour
+                      alarmMinute = timePicker.minute
+                      isAlarmScheduled = true
+                      val formatted = String.format("%02d:%02d", alarmHour, alarmMinute)
+                      tvStatus.text = "ALARM AKTIF: $formatted WIB (Target $targetReps Push-Up)"
+                      Toast.makeText(this, "Alarm disetel ke $formatted", Toast.LENGTH_SHORT).show()
+                  }
+                  btnTriggerNow.setOnClickListener { startAlarmMission() }
+                  btnNoseTouch.setOnClickListener {
+                      if (isAlarmRinging) {
+                          registerOnePushUp("Sentuhan Hidung/Dagu")
+                      } else {
+                          Toast.makeText(this, "Tekan UJI ALARM terlebih dahulu!", Toast.LENGTH_SHORT).show()
+                      }
+                  }
+                  handler.post(clockChecker)
+              }
+
+              private fun startAlarmMission() {
+                  isAlarmRinging = true
+                  currentReps = 0
+                  isBodyDown = false
+                  updateCounterUI()
+                  tvStatus.text = "ALARM BERBUNYI! Letakkan HP di lantai & mulai Push-Up!"
+                  val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                  val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+                  audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVol, 0)
+                  ringtone?.play()
+                  vibratePhone(800)
+              }
+
+              private fun registerOnePushUp(source: String) {
+                  currentReps++
+                  toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 150)
+                  vibratePhone(120)
+                  updateCounterUI()
+                  tvStatus.text = "Bagus! ($source) - Sisa ${targetReps - currentReps} lagi!"
+                  if (currentReps >= targetReps) stopAlarmVictory()
+              }
+
+              private fun stopAlarmVictory() {
+                  isAlarmRinging = false
+                  isAlarmScheduled = false
+                  ringtone?.stop()
+                  toneGen.startTone(ToneGenerator.TONE_CDA_ALERT_CALL_GUARD, 600)
+                  tvStatus.text = "MISI SELESAI! Alarm Mati. Selamat Pagi & Tetap Bugar!"
+                  Toast.makeText(this, "Selamat! Target $targetReps Push-Up Tercapai!", Toast.LENGTH_LONG).show()
+              }
+
+              private fun updateCounterUI() { tvCounter.text = "$currentReps / $targetReps" }
+
+              private fun vibratePhone(durationMs: Long) {
+                  val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                  vibrator.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+              }
+
+              override fun onResume() {
+                  super.onResume()
+                  proximitySensor?.also { sensor ->
+                      sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST)
+                  }
+              }
+
+              override fun onPause() {
+                  super.onPause()
+                  sensorManager.unregisterListener(this)
+              }
+
+              override fun onSensorChanged(event: SensorEvent?) {
+                  if (!isAlarmRinging || event == null) return
+                  if (event.sensor.type == Sensor.TYPE_PROXIMITY) {
+                      val distanceCm = event.values[0]
+                      val maxRange = proximitySensor?.maximumRange ?: 5f
+                      val isNear = distanceCm < maxRange && distanceCm < 8f
+                      if (isNear && !isBodyDown) {
+                          isBodyDown = true
+                          tvStatus.text = "POSISI TURUN TERDETEKSI... Dorong tubuh ke atas!"
+                          toneGen.startTone(ToneGenerator.TONE_DTMF_1, 80)
+                      } else if (!isNear && isBodyDown) {
+                          isBodyDown = false
+                          registerOnePushUp("Sensor Proximity")
+                      }
+                  }
+              }
+              override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+          }
+          EOF
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: Build Debug APK
+        run: gradle assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PushClockPro-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
