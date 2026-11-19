@@ -2,14 +2,15 @@ name: Auto Build PushClock Pro APK
 
 on:
   push:
-    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Buat Seluruh File Aplikasi Android Otomatis
+      - uses: actions/checkout@v4
+
+      - name: Buat Proyek Android
         run: |
           mkdir -p app/src/main/java/com/pushclock/pro
           mkdir -p app/src/main/res/layout
@@ -178,7 +179,7 @@ jobs:
                       android:id="@+id/btnNoseTouch"
                       android:layout_width="match_parent"
                       android:layout_height="110dp"
-                      android:text="TARGET SENTUH DAGU / HIDUNG\n(Atau Dekatkan Dada ke Sensor Atas Layar)"
+                      android:text="TARGET SENTUH DAGU / HIDUNG"
                       android:backgroundTint="#16A34A"
                       android:textColor="#FFFFFF"
                       android:textSize="16sp"
